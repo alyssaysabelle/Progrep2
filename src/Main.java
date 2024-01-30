@@ -20,6 +20,11 @@ public class Main {
         System.out.print("Enter thread count: ");
         int thread_count = scanner.nextInt();
         scanner.close();
+        // Check if the input is lower than 1, set numThreads to 1
+        if (thread_count < 1) {
+            System.out.print("Invalid input. Using default value of 1\n");
+            thread_count = 1;
+        }
 
         // TODO: Generate a random array of given size
         int[] array = new int[array_size];
@@ -39,22 +44,25 @@ public class Main {
         // sequence
         List<Interval> intervals = generate_intervals(0, array_size - 1);
 
-        // Concurrent version
-        for (Interval interval : intervals) {
-            executorService.submit(() -> merge(array, interval.getStart(), interval.getEnd()));
+        if (thread_count == 1) {
+            // TODO: Call merge on each interval in sequence
+            for(Interval interval : intervals) {
+                merge(array, interval.getStart(), interval.getEnd());
+            }
         }
+        else {
+            // Concurrent version
+            for (Interval interval : intervals) {
+                executorService.submit(() -> merge(array, interval.getStart(), interval.getEnd()));
+            }
 
-        executorService.shutdown();
-        try {
-            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            executorService.shutdown();
+            try {
+                executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
-
-        // TODO: Call merge on each interval in sequence
-        //for(Interval interval : intervals) {
-            //merge(array, interval.getStart(), interval.getEnd());
-        //}
 
         System.out.print("Sorted array: ");
         for(int i = 0; i < array_size; i++) {
