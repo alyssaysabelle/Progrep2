@@ -20,6 +20,8 @@ public class Main {
         System.out.print("Enter thread count: ");
         int thread_count = scanner.nextInt();
         scanner.close();
+
+        long start= System.nanoTime();
         // Check if the input is lower than 1, set numThreads to 1
         if (thread_count < 1) {
             System.out.print("Invalid input. Using default value of 1\n");
@@ -69,12 +71,20 @@ public class Main {
             System.out.print(array[i] + " ");
         }
 
+        long end = System.nanoTime();
+        double runTime = end - start;
+        runTime = runTime * 1e-9;
+
+
         // Sanity check
         if (isSorted(array)) {
             System.out.print("\nArray is sorted.");
         } else {
             System.out.print("\nArray is NOT sorted.");
         }
+
+        System.out.println("\nRUNTIME: "+ runTime);
+
 
         // Once you get the single-threaded version to work, it's time to 
         // implement the concurrent version. Good luck :)
