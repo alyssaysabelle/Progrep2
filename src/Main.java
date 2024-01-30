@@ -2,8 +2,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
+    private static ExecutorService executorService;
     public static void main(String[] args) {
         // TODO: Seed your randomizer
         Random rand = new Random();
@@ -29,22 +33,52 @@ public class Main {
         }
         System.out.println();
 
+        executorService = Executors.newFixedThreadPool(thread_count);
+
         // TODO: Call the generate_intervals method to generate the merge 
         // sequence
         List<Interval> intervals = generate_intervals(0, array_size - 1);
 
-        // TODO: Call merge on each interval in sequence
-        for(Interval interval : intervals) {
-            merge(array, interval.getStart(), interval.getEnd());
+        // Concurrent version
+        for (Interval interval : intervals) {
+            executorService.submit(() -> merge(array, interval.getStart(), interval.getEnd()));
         }
+
+        executorService.shutdown();
+        try {
+            executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // TODO: Call merge on each interval in sequence
+        //for(Interval interval : intervals) {
+            //merge(array, interval.getStart(), interval.getEnd());
+        //}
 
         System.out.print("Sorted array: ");
         for(int i = 0; i < array_size; i++) {
             System.out.print(array[i] + " ");
         }
 
+        // Sanity check
+        if (isSorted(array)) {
+            System.out.print("\nArray is sorted.");
+        } else {
+            System.out.print("\nArray is NOT sorted.");
+        }
+
         // Once you get the single-threaded version to work, it's time to 
         // implement the concurrent version. Good luck :)
+    }
+
+    private static boolean isSorted(int[] array) {
+        for (int i = 0; i < array.length - 1; i++) {
+            if (array[i] > array[i + 1]) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /*
