@@ -1,7 +1,11 @@
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -44,27 +48,26 @@ public class Main {
 
         // TODO: Call the generate_intervals method to generate the merge 
         // sequence
-        List<Interval> intervals = generate_intervals(0, array_size - 1);
+         List<List<Interval>> allIntervals = generate_intervals(0, array_size - 1);
 
-        if (thread_count == 1) {
-            // TODO: Call merge on each interval in sequence
-            for(Interval interval : intervals) {
-                merge(array, interval.getStart(), interval.getEnd());
-            }
-        }
-        else {
-            // Concurrent version
-            for (Interval interval : intervals) {
-                executorService.submit(() -> merge(array, interval.getStart(), interval.getEnd()));
+        for (List<Interval> levelIntervals : allIntervals) {
+            CountDownLatch latch = new CountDownLatch(levelIntervals.size());
+
+            for (Interval interval : levelIntervals) {
+                executorService.submit(() -> {
+                    merge(array, interval.getStart(), interval.getEnd());
+                    latch.countDown();
+                });
             }
 
-            executorService.shutdown();
             try {
-                executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+                latch.await(); // Wait for all threads to finish
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+
+        executorService.shutdown();
 
         System.out.print("Sorted array: ");
         for(int i = 0; i < array_size; i++) {
@@ -109,36 +112,34 @@ public class Main {
 
     Returns a list of Interval objects indicating the ranges for merge sort.
     */
-    public static List<Interval> generate_intervals(int start, int end) {
-        List<Interval> frontier = new ArrayList<>();
-        frontier.add(new Interval(start,end));
+    public static List<List<Interval>> generate_intervals(int start, int end) {
+        List<List<Interval>> levels = new ArrayList<>();
+        Queue<Interval> queue = new LinkedList<>();
+        queue.add(new Interval(start, end));
 
-        int i = 0;
-        while(i < frontier.size()){
-            int s = frontier.get(i).getStart();
-            int e = frontier.get(i).getEnd();
+        while (!queue.isEmpty()) {
+            int levelSize = queue.size();
+            List<Interval> currentLevel = new ArrayList<>();
 
-            i++;
+            for (int i = 0; i < levelSize; i++) {
+                Interval current = queue.poll();
+                int s = current.getStart();
+                int e = current.getEnd();
 
-            // if base case
-            if(s == e){
-                continue;
+                if (s < e) {
+                    int m = s + (e - s) / 2;
+                    queue.add(new Interval(s, m));
+                    queue.add(new Interval(m + 1, e));
+                }
+
+                currentLevel.add(current);
             }
 
-            // compute midpoint
-            int m = s + (e - s) / 2;
-
-            // add prerequisite intervals
-            frontier.add(new Interval(m + 1,e));
-            frontier.add(new Interval(s,m));
+            levels.add(currentLevel);
         }
 
-        List<Interval> retval = new ArrayList<>();
-        for(i = frontier.size() - 1; i >= 0; i--) {
-            retval.add(frontier.get(i));
-        }
-
-        return retval;
+        Collections.reverse(levels);
+        return levels;
     }
 
     /*
