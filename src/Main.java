@@ -38,11 +38,11 @@ public class Main {
             array[i] = rand.nextInt(100);
         }
 
-        System.out.print("Unsorted array: ");
-        for(int i = 0; i < array_size; i++) {
-            System.out.print(array[i] + " ");
-        }
-        System.out.println();
+        //System.out.print("Unsorted array: ");
+        //for(int i = 0; i < array_size; i++) {
+        //    System.out.print(array[i] + " ");
+        //}
+        //System.out.println();
 
         executorService = Executors.newFixedThreadPool(thread_count);
 
@@ -69,10 +69,10 @@ public class Main {
 
         executorService.shutdown();
 
-        System.out.print("Sorted array: ");
-        for(int i = 0; i < array_size; i++) {
-            System.out.print(array[i] + " ");
-        }
+        //System.out.print("Sorted array: ");
+        //for(int i = 0; i < array_size; i++) {
+         //   System.out.print(array[i] + " ");
+        //}
 
         long end = System.nanoTime();
         double runTime = end - start;
