@@ -25,7 +25,6 @@ public class Main {
         int thread_count = scanner.nextInt();
         scanner.close();
 
-        long start= System.nanoTime();
         // Check if the input is lower than 1, set numThreads to 1
         if (thread_count < 1) {
             System.out.print("Invalid input. Using default value of 1\n");
@@ -49,6 +48,8 @@ public class Main {
         // TODO: Call the generate_intervals method to generate the merge 
         // sequence
          List<List<Interval>> allIntervals = generate_intervals(0, array_size - 1);
+
+        long start= System.nanoTime();
 
         for (List<Interval> levelIntervals : allIntervals) {
             CountDownLatch latch = new CountDownLatch(levelIntervals.size());
